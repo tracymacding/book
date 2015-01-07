@@ -33,7 +33,7 @@ NEFS-MDS作为系统控制节点,扮演了系统大脑的角色。
 
 NEFS系统由客户端(FSI)、元数据节点(MDS)、数据节点(PS)三部分组成。系统结构如下图所示：
 
-![Alt text](./pic/nefs整体架构.png)
+![Alt text](./pic/nefs-overview.png)
 
 * FSI:   客户端给使用方提供集群读写删接口;  
 * MDS:   集群控制节点, 管理集群所有数据节点并为客户端分配写空间;  
@@ -43,7 +43,7 @@ NEFS系统由客户端(FSI)、元数据节点(MDS)、数据节点(PS)三部分�
 
 从MDS角度观察系统拓扑如下：
 
-![Alt text](./MDS系统拓扑.png)
+![Alt text](./mds-topo.png)
 
 以下逻辑概念组成了系统全局拓扑图：
 
@@ -240,7 +240,7 @@ type AdminContext struct {
 
 MDS管理服务器对请求指令的处理流程如下图所示:
 
-![Alt text](./pic/管理服务器流程.png)
+![Alt text](./pic/adminServer.png)
 
 下图则以**"添加存储池"**为例说明了每个管理员的指令在管理服务器内部的处理流程
 
