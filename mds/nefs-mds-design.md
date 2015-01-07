@@ -47,12 +47,11 @@ NEFS系统由客户端(FSI)、元数据节点(MDS)、数据节点(PS)三部分�
 
 以下逻辑概念组成了系统全局拓扑图：
 
-* __存储池__：物理服务器集合，但存储池以域为单位管理所有物理服务器。存储池实现了用户数据的物理隔离，某些特定产品可能需要使用单独的存储池；  
+* __存储池__：物理服务器集合，但存储池以域为单位管理所有物理服务器。存储池实现了用户数据的物理隔离，某些特定产品可能需要使用单独的存储池；
 * __租户__：系统资源使用者,每个租户使用特定存储池存放数据； 
 * __域__：域是物理服务器集合，引入域可带来如下优势：
-> *增强数据可靠性*：不同域的机器在物理位置上隔离,而不同的副本位于不同域上,可增强多副本的数据可靠性；    
-> *简化运维*：运维操作可以域为单位进行。如搬迁物理服务器时可批量搬迁某个域下面所有的物理服务器而不会导致某个Partition的所有副本全部不能访问的情况，减小数据迁移的复杂度。    
-
+> __增强数据可靠性__：不同域的机器在物理位置上隔离,而不同的副本位于不同域上,可增强多副本的数据可靠性；    
+> __简化运维__：运维操作可以域为单位进行。如搬迁物理服务器时可批量搬迁某个域下面所有的物理服务器而不会导致某个Partition的所有副本全部不能访问的情况，减小数据迁移的复杂度。    
 * __物理服务器__：普通线上服务器,但上线时会被分配至特定存储池的某个域；
 * __PS__： 系统存储节点，每个PS进程管理物理服务器上的一块磁盘；
 * __Partition__： 系统数据写入所在地，对于小文件，Partition对应了物理上的一个大文件,众多小对象被合并写入大文件；对于大对象写入,Partition对应了物理上的目录，大对象存放于该目录下。
@@ -233,9 +232,9 @@ type AdminContext struct {
 ```
 
 此为管理服务器核心数据结构:
-1. addr: 管理服务器的本地启动地址(ip:port)
-2. topo: 管理服务器依赖的系统核心模块指针
-3. author: 管理服务器认证方式
+* addr: 管理服务器的本地启动地址(ip:port)
+* topo: 管理服务器依赖的系统核心模块指针
+* author: 管理服务器认证方式
 
 #### 内部实现
 
@@ -266,6 +265,7 @@ $Parent/clusterID/nefs/master => ip,port,starttime
 $Parent/clusterID/nefs/ps/id-token-ip-port-starttime
 ```
 MDS的Zookeeper模块主要处理下列任务:
+
 1. 启动时连接配置中指定的Zookeeper并在指定目录下创建MDS节点并写入自身信息(ip-port-start)
 2. 启动时获取Zookeeper上记录的所有当前PS节点信息，处理这些已上线节点;
 3. 启动后台任务监听MDS与Zookeeper之间的连接事件以及PS节点上下线事件;
@@ -308,11 +308,11 @@ Zk模块启动主要: 连接Zookeeper、注册监听事件、启动新协程处�
 
 ##### Zk服务器事件处理
 
-** 连接断开、session过期事件处理 ** 
+__连接断开、session过期事件处理__ 
 > 1. 发送报警
 > 2. MDS进程退出，避免在MDS集群配置下产生多主现象
 
-** PS节点变化事件处理 **
+__PS节点变化事件处理__
 > 1. 分别获取本地和Zk Server上的PS节点信息;
 > 2. 对比本地节点和Zk Server节点状态,分辨出哪些PS下线而哪些PS又上线,具体方法：
     - 对Zk服务器上的所有节点进行去重处理,对PS-ID和token相同的节点对比其启动时间,只保留最近启动的节点。必须这么做的原因是由于如果快速重启PS的话,在ZK服务器的ps目录下会有两个同样的psid节点,具体可参考[NEFS-70](http://jira.hz.netease.com/browse/NEFS-70);
@@ -514,6 +514,7 @@ type NefsPartition struct {
 ***AllocateQuota(user string, diskType string, repli int32, parType int16)***
 
 拓扑模块AllocateQuota核心流程如下:
+
 1. 根据user名查找该user是否存在,如果不存在,返回错误"User Not Exist";
 2. 检查diskType和repli是否有效,如果无效,返回错误"Invalid Argument";
 3. 根据diskType和repli拼接的存储策略在本地查找collection;
@@ -527,6 +528,7 @@ type NefsPartition struct {
 ***AllocateServerID(ip string, diskPath string, partitionID []int64) (int32, string, error)***
 
 PS启动时检查发现如果尚未分配ID,则通过RPC调用AllocateServerID()申请ID,具体处理流程如下:
+
 1. 查找参数1的ip在本地是否存在,如果不存在,则返回错误"Server not exist";
 2. 检查partitionID列表是否为空,如果不为空,意味着可能发生某些意外导致ID丢失,报警,由管理员介入处理;
 3. 分配PSID和token;
@@ -538,6 +540,7 @@ PS启动时检查发现如果尚未分配ID,则通过RPC调用AllocateServerID()
 ***PSOnline(psID int32, token string, start int64, ip string, port int32) error***
 
 MDS通过ZK检测到PS上线事件,进入PS上线事件处理,具体流程为:
+
 1. 根据参数的PSID本地查找PS是否存在,若不存在则返回错误"PS Not Exist";
 2. 检查本地PS的token和请求参数中token是否匹配,如果不匹配,返回错误"Invalid Argument";
 3. 向PS发送获取PS信息的RPC请求,以获取PS的磁盘信息,如磁盘的容量、空闲空间等;
@@ -549,6 +552,7 @@ MDS通过ZK检测到PS上线事件,进入PS上线事件处理,具体流程为:
 ***PSOffline(psID int32) error***
 
 一旦某些PS断开,MDS可通过Zk检测到该PS离线事件,并进入以下处理流程:
+
 1. 根据psID查找本地PS,如果未找到,返回错误 "PS Not Exist";
 2. 标记PS状态为Offline;
 3. 将该PS上所有的Partition标记为Close,这些Partition不可再被写入;
@@ -562,10 +566,12 @@ MDS的主要任务是管理系统所有的存储节点并在客户端请求的�
 因此,Partition的副本挑选过程分成如下两阶段：
 
 **存储池内选择域**
+
 1. 遍历存储池下的所有域,晒出选满足条件的所有域：如果该域下面满足条件的存储节点 >= 1,认为该域满足条件,并根据可写存储节点数量决定域的权重;
 2. 从1中筛选出的满足条件域中根据域权重随机选择副本数量的域;
 
 ** 域内随机选择存储节点 **
+
 1. 扫描域内所有存储节点,筛选出所有的可写存储节点,当前每个存储节点权重均为1;
 2. 从1的结果中根据权重随机选择出1个可写存储节点。
 
