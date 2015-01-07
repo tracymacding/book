@@ -43,7 +43,7 @@ NEFS系统由客户端(FSI)、元数据节点(MDS)、数据节点(PS)三部分�
 
 从MDS角度观察系统拓扑如下：
 
-![Alt text](./mds-topo.png)
+![Alt text](./pic/mds-topo.png)
 
 以下逻辑概念组成了系统全局拓扑图：
 
